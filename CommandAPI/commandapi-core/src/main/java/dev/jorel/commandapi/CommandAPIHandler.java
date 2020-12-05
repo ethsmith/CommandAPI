@@ -240,10 +240,7 @@ public class CommandAPIHandler<CommandListenerWrapper> {
 			return null;
 		}
 		if(value instanceof PlaceholderArgument) {
-			System.out.println("SOA");
-			SafeOverrideableArgument<?> optionalArgument = (SafeOverrideableArgument<?>) value;
-			System.out.println("Returning internal default: " + optionalArgument.getDefaultValue());
-			return optionalArgument.getDefaultValue();
+			return ((SafeOverrideableArgument<?>) value).getDefaultValue();
 		}
 		switch (value.getArgumentType()) {
 		case ANGLE:
@@ -529,21 +526,20 @@ public class CommandAPIHandler<CommandListenerWrapper> {
 				Argument argument = args.get(index);
 				if(isOptional.test(argument)) {
 					SafeOverrideableArgument<?> optionalArg = (SafeOverrideableArgument<?>) argument;
-					
+					optionalArg.setOptional(false);
+
 					// Reconstruct the list of arguments, keeping it as it should be
 					{
 						List<Argument> newArgs = new ArrayList<>();
 						int j = 0;
 						for(Argument previousEntry : args) {
 							if(j == index) {
-								optionalArg.setOptional(false);
 								newArgs.add(optionalArg);
 							} else {
 								newArgs.add(previousEntry);
 							}
 							j++;
 						}
-						System.out.println("Registering one as normal");
 						register(commandName, permissions, aliases, requirements, newArgs, executor, converted);
 					}
 					
@@ -559,7 +555,6 @@ public class CommandAPIHandler<CommandListenerWrapper> {
 							}
 							j++;
 						}
-						System.out.println("Registering one with placeholder argument");
 						register(commandName, permissions, aliases, requirements, newArgs, executor, converted);
 					}
 					return;
@@ -640,12 +635,9 @@ public class CommandAPIHandler<CommandListenerWrapper> {
 		while(argumentsIterator.hasNext()) {
 			Argument arg = argumentsIterator.next();
 			if(arg instanceof PlaceholderArgument) {
-				System.out.println("Removing internally optional argument");
 				argumentsIterator.remove();
 			}
 		}
-		
-		System.out.println(args);
 
 		/*
 		 * The innermost argument needs to be connected to the executor. Then that
@@ -823,9 +815,6 @@ public class CommandAPIHandler<CommandListenerWrapper> {
 	
 	// Given an argument and a provider, merge the two together and apply the parser before the provider
 	private SuggestionProvider<CommandListenerWrapper> mergeSuggestionsWithParser(Argument argument, SuggestionProvider<CommandListenerWrapper> provider) {
-		if(true) {
-			return provider;
-		}
 		// Merge default suggestions with parser
 		return (CommandContext<CommandListenerWrapper> context, SuggestionsBuilder builder) -> {
 			try {
@@ -835,7 +824,7 @@ public class CommandAPIHandler<CommandListenerWrapper> {
 			}
 			
 			if(provider == null) {
-				return null; // <-- TODO: Fix whatever this nonsense is, this can't be null!
+				return getSuggestionsBuilder(builder, new IStringTooltip[0]);
 			} else {
 				return provider.getSuggestions(context, builder);
 			}
