@@ -181,13 +181,6 @@ public class CommandAPIHandler<CommandListenerWrapper> {
 		// Generate our command from executor
 		return (cmdCtx) -> {
 			
-//			if(NMS.g().isInstance(cmdCtx)) {
-//				System.out.println("YAY!!!!");
-//				System.out.println(cmdCtx.getClass().getCanonicalName());
-//			}
-//			
-//			System.out.println(cmdCtx.getInput());
-			
 			CommandSender sender = NMS.getSenderForCommand(cmdCtx, executor.isForceNative());
 			Object[] arguments;
 			if(converted) {
@@ -240,7 +233,7 @@ public class CommandAPIHandler<CommandListenerWrapper> {
 			return null;
 		}
 		if(value instanceof PlaceholderArgument) {
-			return ((SafeOverrideableArgument<?>) value).getDefaultValue();
+			return ((SafeOverrideableArgument<?>) value).getDefaultValue().apply(NMS.getCommandSenderForCLW(cmdCtx.getSource()));
 		}
 		switch (value.getArgumentType()) {
 		case ANGLE:
@@ -356,7 +349,7 @@ public class CommandAPIHandler<CommandListenerWrapper> {
 		case UUID:
 			return NMS.getUUID(cmdCtx, key);
 		}
-		return null;
+		throw new RuntimeException("Invalid argument detected: " + value);
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
