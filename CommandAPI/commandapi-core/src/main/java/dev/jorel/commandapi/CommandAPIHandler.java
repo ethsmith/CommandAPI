@@ -38,6 +38,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 
+import de.tr7zw.nbtapi.NBTContainer;
 import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.arguments.CommandAPIArgumentType;
 import dev.jorel.commandapi.arguments.CustomArgument;
@@ -508,7 +509,7 @@ public class CommandAPIHandler<CommandListenerWrapper> {
 		
 		// Expand optional arguments
 		Predicate<Argument> isOptional = arg -> {
-			if(arg instanceof SafeOverrideableArgument) {
+			if(arg instanceof SafeOverrideableArgument && !(arg instanceof PlaceholderArgument)) {
 				return ((SafeOverrideableArgument<?>) arg).isOptional();
 			} else {
 				return false;
@@ -519,7 +520,6 @@ public class CommandAPIHandler<CommandListenerWrapper> {
 				Argument argument = args.get(index);
 				if(isOptional.test(argument)) {
 					SafeOverrideableArgument<?> optionalArg = (SafeOverrideableArgument<?>) argument;
-					optionalArg.setOptional(false);
 
 					// Reconstruct the list of arguments, keeping it as it should be
 					{
@@ -527,6 +527,7 @@ public class CommandAPIHandler<CommandListenerWrapper> {
 						int j = 0;
 						for(Argument previousEntry : args) {
 							if(j == index) {
+								optionalArg.setOptional(false);
 								newArgs.add(optionalArg);
 							} else {
 								newArgs.add(previousEntry);
@@ -534,6 +535,7 @@ public class CommandAPIHandler<CommandListenerWrapper> {
 							j++;
 						}
 						register(commandName, permissions, aliases, requirements, newArgs, executor, converted);
+						optionalArg.setOptional(true);
 					}
 					
 					//Reconstruct the list of arguments and place in the "placeholder" (default) value
@@ -642,6 +644,8 @@ public class CommandAPIHandler<CommandListenerWrapper> {
 		 *
 		 * CommandName -> Args1 -> Args2 -> ... -> ArgsN -> Executor
 		 */
+		
+		System.out.println(args);
 
 		LiteralCommandNode<CommandListenerWrapper> resultantNode;
 		if (args.isEmpty()) {

@@ -2,7 +2,6 @@ package dev.jorel.commandapi.arguments;
 
 import org.bukkit.Bukkit;
 
-import de.tr7zw.nbtapi.NBTContainer;
 import dev.jorel.commandapi.CommandAPIHandler;
 import dev.jorel.commandapi.exceptions.NBTAPINotFoundException;
 
